@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private final static int REQ_PHOTO = 1234;
     private Bitmap photoImage = null;
     private final String FILE_PATH = Environment.getExternalStorageDirectory() + "/tmp.png";
+    public static final String EXTRA_IMAGE = "jp.ac.titech.itpro.sdl.phototaker.EXTRA_IMAGE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        if(savedInstanceState != null){
+            photoImage = (Bitmap)savedInstanceState.get(EXTRA_IMAGE);
+        }
     }
 
     private void showPhoto() {
@@ -67,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
             case REQ_PHOTO:
                 if (resCode == RESULT_OK) {
                     File file = new File(FILE_PATH);
-                    Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-                    ((ImageView)findViewById(R.id.photo_view)).setImageBitmap(bitmap);
+                    photoImage = BitmapFactory.decodeFile(file.getAbsolutePath());
+                    showPhoto();
                     file.delete();
                 }
                 break;
@@ -79,5 +84,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         showPhoto();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if(photoImage != null){
+            outState.putParcelable(EXTRA_IMAGE, photoImage);
+        }
     }
 }
