@@ -3,20 +3,26 @@ package jp.ac.titech.itpro.sdl.phototaker;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private final static int REQ_PHOTO = 1234;
     private Bitmap photoImage = null;
+    private final String FILE_PATH = Environment.getExternalStorageDirectory() + "/tmp.png";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +37,13 @@ public class MainActivity extends AppCompatActivity {
                 PackageManager manager = getPackageManager();
                 List activities = manager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
                 if (!activities.isEmpty()) {
+                    File file = new File(FILE_PATH);
+                    Uri uri = FileProvider.getUriForFile(
+                            MainActivity.this,
+                            BuildConfig.APPLICATION_ID + ".provider",
+                            file);
+                    intent.addCategory(Intent.CATEGORY_DEFAULT);
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
                     startActivityForResult(intent, REQ_PHOTO);
                 } else {
                     Toast.makeText(MainActivity.this, R.string.toast_no_activities, Toast.LENGTH_LONG).show();
@@ -53,9 +66,10 @@ public class MainActivity extends AppCompatActivity {
         switch (reqCode) {
             case REQ_PHOTO:
                 if (resCode == RESULT_OK) {
-                    Bundle extras = data.getExtras();
-                    Bitmap bitmap = (Bitmap)extras.get("data");
+                    File file = new File(FILE_PATH);
+                    Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
                     ((ImageView)findViewById(R.id.photo_view)).setImageBitmap(bitmap);
+                    file.delete();
                 }
                 break;
         }
